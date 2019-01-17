@@ -15,5 +15,7 @@ namespace Resume.Models
         public List<Language> Languages { get; set; }
 
         public List<Interest> Interests { get; set; }
+        public List<Project> Projects { get; set; }
+        public Metadata Meta { get; set; }
     }
 }

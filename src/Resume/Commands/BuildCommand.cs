@@ -85,6 +85,15 @@ namespace Resume.Commands
             }
 
             var converter = new HtmlToPdf();
+
+            converter.Options.PdfPageSize = PdfPageSize.A4;
+            converter.Options.MarginTop = 72;
+            converter.Options.MarginBottom = 72;
+            converter.Options.MarginLeft = 72;
+            converter.Options.MarginRight =72;
+
+            converter.Options.CssMediaType = HtmlToPdfCssMediaType.Print;
+
             var document = converter.ConvertHtmlString(page);
 
             using (var stream = new FileStream(resumePdfPath, FileMode.Create))

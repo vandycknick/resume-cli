@@ -47,18 +47,50 @@
         .color-purple {
             color: #7F1637;
         }
+
+        .taglist {
+            display: block;
+            list-style: none;
+            padding: 0;
+            margin-top: 5px;
+        }
+
+        .taglist li {
+            display: inline;
+        }
+
+        .taglist li:after {
+            content: ", ";
+        }
+
+        .taglist li:last-child:after {
+            content: "";
+        }
+
+        @@media print {
+            html {
+                font-size: 1.3rem;
+            }
+
+            .container {
+                margin: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+        }
+
     </style>
 }
 
-<header class="row my-5">
+<header class="row mb-5">
     <picture class="d-none d-sm-flex col-sm-2">
         <img class="avatar rounded-circle shadow" src="@Model.Picture" alt="avatar" />
     </picture>
-    <div class="col-12 col-sm-5 d-flex flex-column justify-content-center">
+    <div class="col-12 col-sm-4 d-flex flex-column justify-content-center">
         <h1>@Model.Name</h1>
         <div class="h1-subheader">@Model.JobTitle</div>
     </div>
-    <div class="col-12 col-sm-5 d-flex flex-column justify-content-center align-items-end">
+    <div class="col-12 col-sm-6 d-flex flex-column justify-content-center align-items-end">
         @foreach (var record in Model.ContactInfo) {
             <div>
                 <span class="color-purple">@record.Type</span>: @record.Data
@@ -71,7 +103,7 @@
     <section class="col-12 mb-4">
         <h2>About Me</h2>
         @foreach (string chunk in Model.AboutMe) {
-        <p>@chunk</p>
+            <p>@chunk</p>
         }
     </section>
 
@@ -79,7 +111,7 @@
         <h2>Professional Experience</h2>
 
         @foreach (var work in Model.WorkPlaces) {
-        <h3>@work.Position at @work.Company</h3>
+        <h3>@work.Position at @work.Name</h3>
         <span class="time-span__subheading d-block mb-3">
             @work.StartDate.ToString("MMMM").Substring(0,3) @work.StartDate.Year -
             @if (@work.EndDate.Year == 1) {
@@ -89,16 +121,14 @@
             }
         </span>
 
-        @foreach (string chunk in @work.Summary.Split(new string[] { "\n\n" }, StringSplitOptions.None)) {
-            <p>@chunk</p>
-        }
+        <p>@work.Description</p>
+        <p>@work.Summary</p>
 
         <div>
-            <span>Highlights:</span>
-
-            <ul>
+            <span class="d-block font-weight-bold">Technologies:</span>
+            <ul class="taglist">
                 @foreach(var highlight in @work.Highlights) {
-                <li>@highlight</li>
+                    <li>@highlight</li>
                 }
             </ul>
         </div>
@@ -108,17 +138,17 @@
     <section class="col-12 mb-4">
         <h2>Education</h2>
         @foreach(var school in Model.Schools) {
-        <h3>@school.Institution</h3>
-        <h4>@school.StudyType - @school.Area</h4>
-        <span class="time-span__subheading d-block mb-3">
-            @school.StartDate.ToString("MMMM").Substring(0,3) @school.StartDate.Year - @school.EndDate.ToString("MMMM").Substring(0,3)
-            @school.EndDate.Year
-        </span>
-        <ul>
-            @foreach(var course in school.Courses) {
-            <li>@course</li>
-            }
-        </ul>
+            <h3>@school.Institution</h3>
+            <h4>@school.StudyType - @school.Area</h4>
+            <span class="time-span__subheading d-block mb-3">
+                @school.StartDate.ToString("MMMM").Substring(0,3) @school.StartDate.Year - @school.EndDate.ToString("MMMM").Substring(0,3)
+                @school.EndDate.Year
+            </span>
+            <ul>
+                @foreach(var course in school.Courses) {
+                    <li>@course</li>
+                }
+            </ul>
         }
     </section>
 
@@ -129,7 +159,7 @@
                 <tr>
                     <th scope="col"></th>
                     @foreach (var lang in Model.Languages) {
-                    <th scope="col">@lang.Name</th>
+                        <th scope="col">@lang.Name</th>
                     }
                 </tr>
             </thead>
@@ -137,7 +167,7 @@
                 <tr>
                     <th scope="row">Fluency</th>
                     @foreach (var lang in Model.Languages) {
-                    <td>@lang.Fluency</td>
+                        <td>@lang.Fluency</td>
                     }
                 </tr>
             </tbody>

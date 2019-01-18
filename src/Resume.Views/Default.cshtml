@@ -1,7 +1,7 @@
-@model ResumeViewModel
+@model DefaultModel
 @{
     Layout = "_Layout-Bootstrap";
-    ViewData["Title"] = "Resume - Nick Van Dyck";
+    ViewData["Title"] = $"Resume - {Model.Name}";
 }
 
 @section Styles {
@@ -48,25 +48,6 @@
             color: #7F1637;
         }
 
-        .taglist {
-            display: block;
-            list-style: none;
-            padding: 0;
-            margin-top: 5px;
-        }
-
-        .taglist li {
-            display: inline;
-        }
-
-        .taglist li:after {
-            content: ", ";
-        }
-
-        .taglist li:last-child:after {
-            content: "";
-        }
-
         @@media print {
             html {
                 font-size: 1.3rem;
@@ -78,7 +59,6 @@
                 max-width: 100%;
             }
         }
-
     </style>
 }
 
@@ -125,8 +105,8 @@
         <p>@work.Summary</p>
 
         <div>
-            <span class="d-block font-weight-bold">Technologies:</span>
-            <ul class="taglist">
+            <span class="d-block font-weight-bold">Highlights:</span>
+            <ul>
                 @foreach(var highlight in @work.Highlights) {
                     <li>@highlight</li>
                 }

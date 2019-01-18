@@ -26,6 +26,7 @@ namespace Resume.Configuration
 
             services.Configure<RazorViewEngineOptions>(options =>
             {
+                options.ViewLocationFormats.Add("/Shared/{0}.cshtml");
                 options.FileProviders.Add(fileProvider);
             });
 

@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Resume.Services;
-using Resume.Views.ViewModels;
 using SelectPdf;
 
 namespace Resume.Commands
@@ -31,47 +28,14 @@ namespace Resume.Commands
             _resumeClient = resumeClient;
         }
 
-        public ResumeViewModel GetResumeViewModel()
-        {
-
-            var resume = _resumeClient.GetResume(Location);
-
-            var model = new ResumeViewModel()
-            {
-                Name = resume.Basics.Name,
-                JobTitle = resume.Basics.Label,
-                Picture = resume.Basics.Picture,
-                AboutMe = resume.Basics.Summary.Split("\n\n").ToList(),
-                WorkPlaces = resume.Work,
-                ContactInfo = new List<ContactRecord>(),
-                Schools = resume.Education,
-                Languages = resume.Languages,
-            };
-
-            model.ContactInfo.Add(new ContactRecord()
-            {
-                Type = "Email",
-                Data = resume.Basics.Email,
-            });
-
-            foreach (var profile in resume.Basics.Profiles)
-            {
-                model.ContactInfo.Add(new ContactRecord()
-                {
-                    Type = profile.Network,
-                    Data = profile.Url,
-                });
-            }
-
-            return model;
-
-        }
-
         public async Task OnExecuteAsync()
         {
             Console.WriteLine("Starting ...");
-            var model = GetResumeViewModel();
-            var page = await _razorViewRenderer.RenderViewToStringAsync("Views/Resume_Default.cshtml", model);
+            var model = new Resume.Views.DefaultModel();
+            model.OnRender(_resumeClient.GetResume(Location));
+
+
+            var page = await _razorViewRenderer.RenderViewToStringAsync("Default.cshtml", model);
 
             Directory.CreateDirectory(Output);
 

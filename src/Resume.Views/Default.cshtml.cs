@@ -28,6 +28,12 @@ namespace Resume.Views
 
             ContactInfo.Add(new ContactRecord()
             {
+                Type = "Website",
+                Data = resume.Basics.Website,
+            });
+
+            ContactInfo.Add(new ContactRecord()
+            {
                 Type = "Email",
                 Data = resume.Basics.Email,
             });

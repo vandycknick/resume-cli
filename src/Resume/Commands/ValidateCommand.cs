@@ -26,7 +26,7 @@ namespace Resume.Commands
             {
                 (bool isValid, IList<string> messages) = await _resumeValidator.Validate(Location);
 
-                Console.WriteLine("Your json resume is {0}", (isValid ? "valid" : "invalid:"));
+                Console.WriteLine("Your json resume is {0}", isValid ? "valid" : "invalid:");
 
                 Console.WriteLine("---");
 

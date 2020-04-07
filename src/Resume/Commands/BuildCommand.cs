@@ -3,8 +3,10 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
+using PuppeteerSharp;
+using PuppeteerSharp.Media;
+using RazorLight;
 using Resume.Services;
-using SelectPdf;
 
 namespace Resume.Commands
 {
@@ -19,10 +21,10 @@ namespace Resume.Commands
         [Option(Description = "Path to resume.json file", ShortName = "o")]
         public string Output { get; set; } = "artifacts";
 
-        private readonly RazorViewRenderer _razorViewRenderer;
+        private readonly IRazorLightEngine _razorViewRenderer;
         private readonly IResumeClient _resumeClient;
 
-        public BuildCommand(RazorViewRenderer razorViewRenderer, IResumeClient resumeClient)
+        public BuildCommand(IRazorLightEngine razorViewRenderer, IResumeClient resumeClient)
         {
             _razorViewRenderer = razorViewRenderer;
             _resumeClient = resumeClient;
@@ -31,11 +33,10 @@ namespace Resume.Commands
         public async Task OnExecuteAsync()
         {
             Console.WriteLine("Starting ...");
-            var model = new Resume.Views.DefaultModel();
+            var model = new Resume.Templates.DefaultModel();
             model.OnRender(_resumeClient.GetResume(Location));
 
-
-            var page = await _razorViewRenderer.RenderViewToStringAsync("Default.cshtml", model);
+            var result = await _razorViewRenderer.CompileRenderAsync("Default", model);
 
             Directory.CreateDirectory(Output);
 
@@ -44,27 +45,42 @@ namespace Resume.Commands
 
             using (var stream = new FileStream(resumeHtmlPath, FileMode.Create))
             {
-                var bytes = Encoding.UTF8.GetBytes(page);
+                var bytes = Encoding.UTF8.GetBytes(result);
                 await stream.WriteAsync(bytes);
             }
 
-            var converter = new HtmlToPdf();
-
-            converter.Options.PdfPageSize = PdfPageSize.A4;
-            converter.Options.MarginTop = 72;
-            converter.Options.MarginBottom = 72;
-            converter.Options.MarginLeft = 72;
-            converter.Options.MarginRight =72;
-
-            converter.Options.CssMediaType = HtmlToPdfCssMediaType.Print;
-
-            var document = converter.ConvertHtmlString(page);
-
-            using (var stream = new FileStream(resumePdfPath, FileMode.Create))
+            var fetcher = new BrowserFetcher(new BrowserFetcherOptions
             {
-                document.Save(stream);
-                document.Close();
-            }
+                Path = Path.GetDirectoryName(typeof(Program).Assembly.Location),
+            });
+
+            await fetcher.DownloadAsync(BrowserFetcher.DefaultRevision);
+            var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                ExecutablePath = fetcher.GetExecutablePath(BrowserFetcher.DefaultRevision),
+                Headless = true
+            });
+
+            var page = await browser.NewPageAsync();
+
+            await page.EmulateMediaTypeAsync(MediaType.Print);
+
+            var encoded = System.Convert.ToBase64String(Encoding.UTF8.GetBytes(result));
+            await page.GoToAsync($"data:text/html;base64,{encoded}", WaitUntilNavigation.Networkidle0);
+
+            // await page.emulateMedia(themePkg.pdfRenderOptions && themePkg.pdfRenderOptions.mediaType || 'screen');
+            // await page.goto(`data: text / html; base64,${ btoa(unescape(encodeURIComponent(html)))}`, { waitUntil: 'networkidle0' });
+
+            await page.PdfAsync(resumePdfPath, new PdfOptions
+            {
+                Format = PaperFormat.Letter,
+                PrintBackground = true,
+            });
+
+    //     path: fileName + format,
+    //   format: 'Letter',
+    //   printBackground: true,
+    //   ...themePkg.pdfRenderOptions
 
             Console.WriteLine("Done...");
         }

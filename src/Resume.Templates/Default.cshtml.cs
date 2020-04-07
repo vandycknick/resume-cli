@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Resume.Models;
 
-namespace Resume.Views
+namespace Resume.Templates
 {
     public class DefaultModel
     {

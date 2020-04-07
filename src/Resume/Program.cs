@@ -3,8 +3,8 @@ using System.Reflection;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using RazorLight;
 using Resume.Commands;
-using Resume.Configuration;
 using Resume.Services;
 
 namespace Resume
@@ -26,7 +26,12 @@ namespace Resume
             services.AddSingleton<IResumeClient, ResumeFileClient>();
             services.AddHttpClient<IResumeValidator, ResumeValidator>();
 
-            services.AddRazorViewRenderer();
+            var engine = new RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof(Templates.DefaultModel))
+                .UseMemoryCachingProvider()
+                .Build();
+
+            services.AddSingleton<IRazorLightEngine>(engine);
         }
 
         public int OnExecute(CommandLineApplication app)

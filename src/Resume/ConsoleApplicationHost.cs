@@ -8,7 +8,7 @@ namespace Resume
         public static int Run<T>(string[] args) where T : class
         {
             var services = new ServiceCollection()
-                .AddSingleton<IConsole>(PhysicalConsole.Singleton);
+                .AddSingleton(PhysicalConsole.Singleton);
 
             var app = new CommandLineApplication<T>();
 

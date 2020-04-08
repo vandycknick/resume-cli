@@ -1,48 +1,55 @@
+using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Help;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
-using System.Reflection;
-using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using RazorLight;
-using Resume.Commands;
-using Resume.Services;
+using System.Threading.Tasks;
 
 namespace Resume
 {
-    [Command("resume")]
-    [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
-    [Subcommand(typeof(BuildCommand))]
-    [Subcommand(typeof(ValidateCommand))]
-    class Program
+    public partial class Program
     {
-        [LegalFilePath]
-        [Option(Description = "Root directory", ShortName = "r", Inherited=true)]
-        public string Root { get; set; } = Directory.GetCurrentDirectory();
-
-        public void ConfigureServices(IServiceCollection services)
+        public static Task<int> Main(string[] args)
         {
-            services.AddSingleton<IFileProvider>(_ => new PhysicalFileProvider(Root));
+            var command = new RootCommand("Todo add description.")
+            {
+                new Option(
+                    "--cwd",
+                    "The current working directory"
+                )
+                {
+                    Argument = new Argument<string>(() => Directory.GetCurrentDirectory())
+                    {
+                        Name = "path",
+                        Arity = ArgumentArity.ZeroOrOne,
+                    },
+                    Required = false,
+                }
+            };
 
-            services.AddSingleton<IResumeClient, ResumeFileClient>();
-            services.AddHttpClient<IResumeValidator, ResumeValidator>();
+            command.Name = "resume";
+            command.AddCommand(CreateBuildCommand());
+            command.AddCommand(CreateValidateCommand());
 
-            var engine = new RazorLightEngineBuilder()
-                .UseEmbeddedResourcesProject(typeof(Templates.DefaultModel))
-                .UseMemoryCachingProvider()
-                .Build();
+            command.Handler = CommandHandler.Create<IHelpBuilder>(help =>
+            {
+                help.Write(command);
+                return 1;
+            });
 
-            services.AddSingleton<IRazorLightEngine>(engine);
+            var builder = new CommandLineBuilder(command);
+            builder.UseHelp();
+            builder.UseVersionOption();
+            builder.UseDebugDirective();
+            builder.UseParseErrorReporting();
+            // builder.ParseResponseFileAs(ResponseFileHandling.ParseArgsAsSpaceSeparated);
+
+            builder.CancelOnProcessTermination();
+            // builder.UseExceptionHandler(HandleException);
+
+            var parser = builder.Build();
+            return parser.InvokeAsync(args);
         }
-
-        public int OnExecute(CommandLineApplication app)
-        {
-            app.ShowHelp();
-            return 1;
-        }
-
-        public static int Main(string[] args) => ConsoleApplicationHost.Run<Program>(args);
-
-        private static string GetVersion()
-            => typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
     }
 }

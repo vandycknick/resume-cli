@@ -9,6 +9,11 @@ CLI_PROJECT		:= src/Resume/Resume.csproj
 CLI_TOOL		:= resume
 CLI_PACKAGE		:= $(CLI_TOOL)-cli
 
+.PHONY: clean
+clean:
+	rm -rf $(BUILD)
+	rm -rf $(ARTIFACTS)
+
 .PHONY: restore
 restore:
 	dotnet restore

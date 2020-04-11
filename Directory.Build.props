@@ -10,7 +10,6 @@
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/nickvdyck/resume.cs</PackageProjectUrl>
     <RepositoryUrl>https://github.com/nickvdyck/resume.cs.git</RepositoryUrl>
-    <PackageReleaseNotes>See $(PackageProjectUrl)/blob/master/CHANGELOG.md#v$(VersionPrefix) for release notes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <IsPackable>false</IsPackable>
     <NoPackageAnalysis>true</NoPackageAnalysis>

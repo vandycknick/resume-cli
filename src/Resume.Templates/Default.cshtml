@@ -120,18 +120,18 @@
                 {
                     <h3>@work.Position at @work.Name</h3>
                     <span class="time-span__subheading d-block mb-3">
-                        @work.StartDate.ToString("MMMM").Substring(0,3) @work.StartDate.Year -
-                        @if (@work.EndDate.Year == 1) {
+                        @work.StartDate?.ToString("MMMM").Substring(0,3) @work.StartDate?.Year -
+                        @if (!@work.EndDate.HasValue) {
                             @("Present")
                         } else {
-                            @string.Format("{0} {1}", @work.EndDate.ToString("MMMM").Substring(0,3), @work.EndDate.Year)
+                            @string.Format("{0} {1}", @work.EndDate?.ToString("MMMM").Substring(0,3), @work.EndDate?.Year)
                         }
                     </span>
 
                     <p>@work.Description</p>
                     <p>@work.Summary</p>
 
-                    @if (@work.Highlights.Count > 0)
+                    @if (@work.Highlights.Length > 0)
                     {
                         <div>
                             <span class="d-block font-weight-bold">Highlights:</span>
@@ -151,8 +151,8 @@
                     <h3>@school.Institution</h3>
                     <h4>@school.StudyType - @school.Area</h4>
                     <span class="time-span__subheading d-block mb-3">
-                        @school.StartDate.ToString("MMMM").Substring(0,3) @school.StartDate.Year - @school.EndDate.ToString("MMMM").Substring(0,3)
-                        @school.EndDate.Year
+                        @school.StartDate?.ToString("MMMM").Substring(0,3) @school.StartDate?.Year - @school.EndDate?.ToString("MMMM").Substring(0,3)
+                        @school.EndDate?.Year
                     </span>
                     <ul>
                         @foreach(var course in school.Courses) {
@@ -169,7 +169,7 @@
                         <tr>
                             <th scope="col"></th>
                             @foreach (var lang in Model.Languages) {
-                                <th scope="col">@lang.Name</th>
+                                <th scope="col">@lang.LanguageLanguage</th>
                             }
                         </tr>
                     </thead>

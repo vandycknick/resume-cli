@@ -1,33 +1,34 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
-using RazorLight;
-using Resume.Models;
+using Resume.Schema;
 
 namespace Resume
 {
     public partial class Program
     {
+        private const string RESUME_FILENAME = "resume.json";
+
         public static Command CreateBuildCommand()
         {
             var command = new Command("build", "Build resume")
             {
                 new Option(
-                    new string[] { "-l", "--location" },
+                    new string[] { "-f", "--file" },
                     "Path to a resume.json file"
                 )
                 {
-                    Argument = new Argument<FileInfo>
+                    Argument = new Argument<FileInfo>(() => new FileInfo(RESUME_FILENAME))
                     {
                         Name = "filepath",
-                        Arity = ArgumentArity.ExactlyOne,
+                        Arity = ArgumentArity.ZeroOrOne,
                     },
-                    Required = true,
+                    Required = false,
                 },
                 new Option(
                     new string[] { "-o", "--output" },
@@ -40,26 +41,37 @@ namespace Resume
                         Arity = ArgumentArity.ZeroOrOne,
                     },
                     Required = false
+                },
+                new Option(
+                    new string[] { "-t", "--theme" },
+                    "A theme for your resume"
+                )
+                {
+                    Argument = new Argument<string>(() => "Default")
+                    {
+                        Name = "theme",
+                        Arity = ArgumentArity.ZeroOrOne
+                    },
+                    Required = false,
                 }
             };
 
-            command.Handler = CommandHandler.Create<FileInfo, string, string>(async (location, output, cwd) =>
+            command.Handler = CommandHandler.Create<FileInfo, string, string, string, IConsole>(async (file, output, cwd, theme, console) =>
             {
-                using var stream = location.OpenRead();
+                if (!file.Exists) throw new FileNotFoundException("Resume not found", file.FullName);
+
+                console.Out.WriteLine("Starting ...");
+
+                using var stream = file.OpenRead();
                 using var reader = new StreamReader(stream);
-                using var jsonReader = new JsonTextReader(reader);
 
-                var resume = new JsonSerializer().Deserialize<JsonResume>(jsonReader);
-
-                var engine = new RazorLightEngineBuilder()
-                    .UseEmbeddedResourcesProject(typeof(Templates.DefaultModel))
-                    .UseMemoryCachingProvider()
+                var resume = JsonResumeV1.FromJson(reader);
+                var engine = new TemplatingEngineBuilder()
+                    .AddDefaultTemplates()
+                    .AddPlugins()
                     .Build();
 
-                var model = new Templates.DefaultModel();
-                model.OnRender(resume);
-
-                var result = await engine.CompileRenderAsync("Default", model);
+                var result = await engine.RenderAsync(theme, resume);
 
                 Directory.CreateDirectory(output);
 
@@ -73,7 +85,7 @@ namespace Resume
 
                 var fetcher = new BrowserFetcher(new BrowserFetcherOptions
                 {
-                    Path = Path.GetDirectoryName(typeof(Program).Assembly.Location),
+                    Path = AppContext.BaseDirectory,
                 });
 
                 await fetcher.DownloadAsync(BrowserFetcher.DefaultRevision);
@@ -96,7 +108,7 @@ namespace Resume
                     PrintBackground = true,
                 });
 
-                Console.WriteLine("Done...");
+                console.Out.WriteLine("Done...");
             });
 
             return command;

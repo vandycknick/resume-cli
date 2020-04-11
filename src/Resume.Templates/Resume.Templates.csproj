@@ -1,21 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)\**\*.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Resume.Models\Resume.Models.csproj" />
+    <ProjectReference Include="..\Resume.Schema\Resume.Schema.csproj" />
+    <ProjectReference Include="..\Resume.TemplateProvider\Resume.TemplateProvider.csproj" />
   </ItemGroup>
 
 </Project>

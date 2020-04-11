@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.IO;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
+using Resume.Schema;
 
 namespace Resume
 {
@@ -18,57 +16,49 @@ namespace Resume
             var command = new Command("validate", "Validate a json resume file.")
             {
                 new Option(
-                    new string[] { "-l", "--location" },
+                    new string[] { "-f", "--file" },
                     "Path to a resume.json file"
                 )
                 {
-                    Argument = new Argument<FileInfo>
+                    Argument = new Argument<FileInfo>(() => new FileInfo(RESUME_FILENAME))
                     {
                         Name = "filepath",
-                        Arity = ArgumentArity.ExactlyOne,
+                        Arity = ArgumentArity.ZeroOrOne,
                     },
-                    Required = true,
+                    Required = false,
                 },
             };
 
-            command.Handler = CommandHandler.Create<FileInfo>(async (location) =>
+            command.Handler = CommandHandler.Create<FileInfo, IConsole>(async (file, console) =>
             {
-                (bool isValid, IList<string> messages) = await ValidateSchema(location);
+                if (!file.Exists) throw new FileNotFoundException("Resume not found", file.FullName);
 
-                Console.WriteLine("Your json resume is {0}", isValid ? "valid" : "invalid:");
+                using var stream = file.OpenRead();
+                using var reader = new StreamReader(stream, Encoding.UTF8);
+                var resumeJson = await reader.ReadToEndAsync();
+                var resume = JsonResumeV1.FromJson(resumeJson);
 
-                Console.WriteLine("---");
+                var validator = new Validator();
+                (bool isValid, IList<string> messages) = await validator.Validate(resume);
 
-                foreach (var message in messages)
+                if (!isValid)
                 {
-                    Console.WriteLine($"- {message}");
+                    console.Out.WriteLine("Errors: ");
+                    foreach (var message in messages)
+                    {
+                        console.Out.WriteLine($"- {message}");
+                    }
+                    console.Out.WriteLine();
+                    return 1;
                 }
-
-                Console.WriteLine("Done!");
+                else
+                {
+                    console.Out.WriteLine("Success!");
+                    return 0;
+                }
             });
 
             return command;
-        }
-
-        private const string SCHEMA_URL = "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
-
-        public static Task<(bool IsValid, IList<string> Messages)> ValidateSchema(FileInfo schema) =>
-            ValidateSchema(schema, SCHEMA_URL);
-
-        public static async Task<(bool IsValid, IList<string> Messages)> ValidateSchema(FileInfo schemaFileInfo, string schemaUrl)
-        {
-            var response = await new HttpClient().GetAsync(schemaUrl);
-            var resumeSchema = await response.Content.ReadAsStringAsync();
-
-            using var stream = schemaFileInfo.OpenRead();
-            using var reader = new StreamReader(stream, Encoding.UTF8);
-            var resume = await reader.ReadToEndAsync();
-
-            var schema = JSchema.Parse(resumeSchema);
-            var resumeObject = JObject.Parse(resume);
-
-            bool isValid = resumeObject.IsValid(schema, out IList<string> messages);
-            return (isValid, messages);
         }
     }
 }

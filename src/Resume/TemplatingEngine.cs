@@ -18,11 +18,11 @@ namespace Resume
             _engine = engine;
         }
 
-        public Task<string> RenderAsync(string view, JsonResumeV1 resume)
+        public Task<string> RenderAsync(string name, JsonResumeV1 resume)
         {
-            if (string.IsNullOrEmpty(view)) throw new ArgumentNullException(nameof(view));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
 
-            var template = _templates.FirstOrDefault(t => t.Name == view);
+            var template = _templates.FirstOrDefault(t => t.Name == name);
 
             if (template == null) throw new Exception("template not found");
 

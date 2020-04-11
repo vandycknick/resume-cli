@@ -82,7 +82,6 @@ namespace Resume
                 var bytes = Encoding.UTF8.GetBytes(result);
                 await htmlStream.WriteAsync(bytes);
 
-
                 var fetcher = new BrowserFetcher(new BrowserFetcherOptions
                 {
                     Path = AppContext.BaseDirectory,
@@ -92,7 +91,7 @@ namespace Resume
                 var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     ExecutablePath = fetcher.GetExecutablePath(BrowserFetcher.DefaultRevision),
-                    Headless = true
+                    Headless = true,
                 });
 
                 var page = await browser.NewPageAsync();
